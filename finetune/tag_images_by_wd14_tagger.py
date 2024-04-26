@@ -7,7 +7,7 @@ from PIL import Image
 import cv2
 from tqdm import tqdm
 import numpy as np
-from tensorflow.keras.models import load_model
+from tensorflow.keras.layers import TFSMLayer
 from huggingface_hub import hf_hub_download
 import torch
 from pathlib import Path
@@ -86,7 +86,8 @@ def main(args):
         print("using existing wd14 tagger model")
 
     # 画像を読み込む
-    model = load_model(args.model_dir)
+    #model = load_model(args.model_dir)
+    model = TFSMLayer(args.model_dir, call_endpoint='serving_default')
 
     # label_names = pd.read_csv("2022_0000_0899_6549/selected_tags.csv")
     # 依存ライブラリを増やしたくないので自力で読むよ
@@ -114,7 +115,8 @@ def main(args):
     def run_batch(path_imgs):
         imgs = np.array([im for _, im in path_imgs])
 
-        probs = model(imgs, training=False)
+        probs = model(imgs, training=False)[0]
+        print(probs)
         probs = probs.numpy()
 
         for (image_path, _), prob in zip(path_imgs, probs):
