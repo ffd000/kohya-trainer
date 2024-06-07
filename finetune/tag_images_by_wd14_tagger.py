@@ -115,8 +115,7 @@ def main(args):
     def run_batch(path_imgs):
         imgs = np.array([im for _, im in path_imgs])
 
-        probs = model(imgs, training=False)[0]
-        print(probs)
+        probs = model(imgs, training=False)['predictions_sigmoid']
         probs = probs.numpy()
 
         for (image_path, _), prob in zip(path_imgs, probs):
