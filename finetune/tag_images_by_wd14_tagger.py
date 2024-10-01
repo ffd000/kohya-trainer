@@ -12,17 +12,28 @@ from huggingface_hub import hf_hub_download
 import torch
 from pathlib import Path
 
-import library.train_util as train_util
-
 # from wd14 tagger
 IMAGE_SIZE = 448
-
+IMAGE_EXTENSIONS = [".png", ".jpg", ".jpeg", ".webp", ".bmp", ".PNG", ".JPG", ".JPEG", ".WEBP", ".BMP"]
 # wd-v1-4-swinv2-tagger-v2 / wd-v1-4-vit-tagger / wd-v1-4-vit-tagger-v2/ wd-v1-4-convnext-tagger / wd-v1-4-convnext-tagger-v2
 DEFAULT_WD14_TAGGER_REPO = 'SmilingWolf/wd-v1-4-convnext-tagger-v2'
 FILES = ["keras_metadata.pb", "saved_model.pb", "selected_tags.csv"]
 SUB_DIR = "variables"
 SUB_DIR_FILES = ["variables.data-00000-of-00001", "variables.index"]
 CSV_FILE = FILES[-1]
+
+def glob_images_pathlib(dir_path, recursive):
+    image_paths = []
+    if recursive:
+        for ext in IMAGE_EXTENSIONS:
+            image_paths += list(dir_path.rglob("*" + ext))
+    else:
+        for ext in IMAGE_EXTENSIONS:
+            image_paths += list(dir_path.glob("*" + ext))
+    image_paths = list(set(image_paths))  # 重複を排除
+    image_paths.sort()
+    return image_paths
+
 
 def preprocess_image(image):
     image = np.array(image)
@@ -105,7 +116,7 @@ def main(args):
     # 画像を読み込む
     
     train_data_dir = Path(args.train_data_dir)
-    image_paths = train_util.glob_images_pathlib(train_data_dir, args.recursive)
+    image_paths = glob_images_pathlib(train_data_dir, args.recursive)
     print(f"found {len(image_paths)} images.")
 
     tag_freq = {}
@@ -204,6 +215,7 @@ def main(args):
     print("done!")
 
 
+print('aaa')
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("train_data_dir", type=str, help="directory for train images / 学習画像データのディレクトリ")
